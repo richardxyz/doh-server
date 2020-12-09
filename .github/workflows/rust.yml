@@ -1,6 +1,17 @@
 name: Rust
 
-on: [push]
+on:
+  release:
+    types: [published]
+  push:
+    tags:
+    - 'v*'
+  #  branches: 
+  #    - master
+#  schedule:
+#    - cron: 0 8 * * 5
+  watch:
+    types: [started]
 
 jobs:
   build:
@@ -15,22 +26,15 @@ jobs:
         run: cargo --version
       - name: Check Rustup default toolchain
         run: rustup default | grep nightly
-      - name: Install cargo-deb
-        run: cargo install --debug cargo-deb
+
       - name: Build
         run: |
-          env RUSTFLAGS="-C link-arg=-s" cargo build --release --features=tls
+          env RUSTFLAGS="-C link-arg=-s" cargo build --release
           mkdir doh-proxy
           mv target/release/doh-proxy doh-proxy/
           cp README.md doh-proxy/
-      - name: Debian package
-        run: |
-          cargo deb
       - uses: actions/upload-artifact@master
         with:
           name: doh-proxy-linux-x86_64
           path: doh-proxy
-      - uses: actions/upload-artifact@master
-        with:
-          name: debian
-          path: target/debian
+
